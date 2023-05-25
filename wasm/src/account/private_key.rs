@@ -23,9 +23,21 @@ use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
 use rand::{rngs::StdRng, SeedableRng};
 use wasm_bindgen::prelude::*;
 
+use aleo_rust::{Record, Network, Plaintext};
+use snarkvm_synthesizer::Block;
+use serde::Serialize;
+
 #[wasm_bindgen]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PrivateKey(PrivateKeyNative);
+
+
+#[derive(Serialize)]
+pub struct RecordData<N: Network> {
+    record: Record<N, Plaintext<N>>,
+    transactionid: N::TransitionID,
+    serial_number: aleo_rust::Field<aleo_rust::Testnet3>,
+}
 
 #[wasm_bindgen]
 impl PrivateKey {
@@ -105,6 +117,28 @@ impl PrivateKey {
         let private_key = Encryptor::decrypt_private_key_with_secret(ciphertext, secret)
             .map_err(|_| "Decryption failed".to_string())?;
         Ok(Self::from(private_key))
+    }
+
+    #[wasm_bindgen(js_name = "decryptblocks")]
+    pub fn decrypt_blocks(&self, blocktext: &str) -> Result<String, String> {
+        let blocks: Vec<Block<CurrentNetwork>> = serde_json::from_str(blocktext).unwrap_or_default();
+        let mut records = Vec::new();
+        for block in &blocks {
+            for transition in block.transitions() {
+                for (commitment, ciphertext_record) in transition.clone().records() {
+                    if let Ok(plaintext) = ciphertext_record.decrypt(&ViewKey::from_private_key(&self)) {
+                        let serial_number: aleo_rust::Field<aleo_rust::Testnet3> = Record::<CurrentNetwork, Plaintext<CurrentNetwork>>::serial_number(**self, *commitment).map_err(|_| "Encryption failed".to_string())?;
+                        let record_data: RecordData<aleo_rust::Testnet3> = RecordData {
+                            record: plaintext,
+                            transactionid: transition.clone().into_id(),
+                            serial_number: serial_number,
+                        };
+                        records.push(record_data)
+                    };
+                }
+            }
+        }
+        Ok(serde_json::to_string_pretty(&records).unwrap_or_default().replace("\\n", ""))
     }
 }
 
