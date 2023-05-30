@@ -47,7 +47,7 @@ default-features = false
 [workspace.dependencies.snarkvm-parameters]
 git = "https://github.com/kaola526/snarkVM.git"
 default-features = false
-features = [ "wasm" ]
+# features = [ "wasm" ]
 
 [lib]
 path = "cli/lib.rs"

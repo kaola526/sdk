@@ -31,8 +31,8 @@
     "webpack-dev-server": "^4.7.4"
   },
   "scripts": {
-    "updateWasm":"rm -rf node_modules && yarn install",
-    "start": "yarn updateWasm && webpack-dev-server",
+    "preinstall": "cd ../wasm && export RUSTFLAGS=\"-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--max-memory=4294967296\" && rustup run nightly wasm-pack build --release --target web --out-dir pkg-parallel -- --features \"parallel, browser\"  -Z build-std=panic_abort,std",
+    "start": "yarn install && webpack-dev-server",
     "build": "webpack --config webpack.config.js",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build",
@@ -55,5 +55,5 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "https://aleohq.github.io/aleo"
+  "homepage": "https://aleo.tools"
 }

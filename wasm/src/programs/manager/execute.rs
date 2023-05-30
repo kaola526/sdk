@@ -21,6 +21,7 @@ use crate::{
     execute_program,
     fee_inclusion_proof,
     inclusion_proof,
+    log,
     programs::fee::FeeExecution,
     types::{
         CurrentAleo,
@@ -53,7 +54,7 @@ impl ProgramManager {
         private_key: PrivateKey,
         cache: bool,
     ) -> Result<ExecutionResponse, String> {
-        web_sys::console::time_stamp_with_data(&format!("executing local function: {function}").into());
+        log(&format!("executing local function: {function}"));
         let inputs = inputs.to_vec();
         let ((response, execution, _, _), process) =
             execute_program!(self, inputs, program, function, private_key, cache);
@@ -88,7 +89,7 @@ impl ProgramManager {
         url: String,
         cache: bool,
     ) -> Result<Transaction, String> {
-        web_sys::console::time_stamp_with_data(&format!("executing function: {function} on-chain").into());
+        log(&format!("executing function: {function} on-chain"));
         if fee_credits <= 0.0 {
             return Err("Fee must be greater than zero to execute a program".to_string());
         }
@@ -97,12 +98,12 @@ impl ProgramManager {
             return Err("Fee record does not have enough credits to pay the specified fee".to_string());
         }
 
-        web_sys::console::time_stamp_with_data(&"execute_program".into());
+        log("execute_program");
         // Execute the program
         let ((_, execution, inclusion, _), process) =
             execute_program!(self, inputs, program, function, private_key, cache);
 
-            web_sys::console::time_stamp_with_data(&"inclusion_proof".into());
+        log("inclusion_proof");
         // Create the inclusion proof for the execution
         let execution = inclusion_proof!(inclusion, execution, url);
 
@@ -110,17 +111,17 @@ impl ProgramManager {
         process.verify_execution::<true>(&execution).map_err(|e| e.to_string())?;
 
         // Execute the call to fee and create the inclusion proof for it
-        web_sys::console::time_stamp_with_data(&"fee_inclusion_proof".into());
+        log("fee_inclusion_proof");
         let fee = fee_inclusion_proof!(process, private_key, fee_record, fee_microcredits, url);
 
         // Verify the fee
         process.verify_fee(&fee).map_err(|e| e.to_string())?;
 
         // Create the transaction
-        web_sys::console::time_stamp_with_data(&"Creating execution transaction".into());
+        log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|err| err.to_string())?;
 
-        web_sys::console::time_stamp_with_data(&"Transaction::from".into());
+        log("Transaction::from");
         Ok(Transaction::from(transaction))
     }
 
@@ -134,7 +135,7 @@ impl ProgramManager {
         fee_record: RecordPlaintext,
         url: String,
     ) -> Result<FeeExecution, String> {
-        web_sys::console::time_stamp_with_data(&"Creating fee execution".into());
+        log("Creating fee execution");
         if fee_credits <= 0.0 {
             return Err("Fee must be greater than zero".to_string());
         }

@@ -4,7 +4,7 @@ version = "0.4.2"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Toolkit for exporting key Aleo functionality and cryptography to WebAssembly"
 homepage = "https://aleo.org"
-repository = "https://github.com/AleoHQ/aleo"
+repository = "https://github.com/AleoHQ/sdk"
 keywords = [
   "aleo",
   "cryptography",
@@ -19,6 +19,7 @@ edition = "2021"
 
 [lib]
 crate-type = [ "cdylib", "rlib" ]
+doctest = false
 
 [dependencies.aleo-rust]
 features = [ "wasm" ]
@@ -41,7 +42,7 @@ version = "1.4.0"
 version = "0.4.3"
 
 [dependencies.js-sys]
-version = "0.3.63"
+version = "0.3"
 
 [dependencies.rand]
 version = "0.8"
@@ -85,16 +86,9 @@ features = [ "serde-serialize" ]
 [dependencies.wasm-bindgen-futures]
 version = "0.4.36"
 
-[dependencies.web-sys]
-version = "0.3.52"
-features = [ "console" ]
-
 [dependencies.wasm-bindgen-rayon]
 version = "1.0.3"
 optional = true
-
-[dependencies.wasm-bindgen-test]
-version = "0.3.35"
 
 [dependencies.console_error_panic_hook]
 version = "0.1.7"
@@ -103,9 +97,10 @@ version = "0.1.7"
 version = "0.3.33"
 
 [features]
-default = [ "serial" ]
+default = [ "serial", "browser" ]
 serial = [ "snarkvm-synthesizer/serial" ]
 parallel = [ "wasm-bindgen-rayon", "rayon" ]
+browser = [ ]
 
 ## Profiles
 [profile.release]

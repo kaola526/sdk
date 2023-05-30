@@ -58,8 +58,7 @@ self.addEventListener("message", ev => {
                     aleo.PrivateKey.from_string(privateKey),
                     fee,
                     aleo.RecordPlaintext.fromString(feeRecord),
-                    url,
-                    true
+                    url
                 );
 
                 console.log(`Web worker: On-chain execution transaction created in ${performance.now() - startTime} ms`);
