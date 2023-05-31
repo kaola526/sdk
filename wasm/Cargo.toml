@@ -97,7 +97,7 @@ version = "0.1.7"
 version = "0.3.33"
 
 [features]
-default = [ "serial", "browser" ]
+default = ["browser" ]
 serial = [ "snarkvm-synthesizer/serial" ]
 parallel = [ "wasm-bindgen-rayon", "rayon" ]
 browser = [ ]

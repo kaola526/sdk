@@ -36,7 +36,7 @@
     "build": "webpack --config webpack.config.js",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build",
-    "clean": "rm -rf node_modules"
+    "clean": "rm ../cargo.lock && rm -rf ./target && rm -rf ../wasm/pkg-parallel && rm -rf node_modules"
   },
   "eslintConfig": {
     "extends": [

@@ -71,6 +71,7 @@ macro_rules! execute_program {
             )
             .map_err(|err| err.to_string())?;
 
+        log("Creating execute");
         let result = process
             .execute::<CurrentAleo, _>(authorization, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
