@@ -152,15 +152,16 @@ impl PrivateKey {
             for transition in block.transitions() {
                 for (commitment, ciphertext_record) in transition.clone().records() {
                     if let Ok(plaintext) = ciphertext_record.decrypt(&ViewKey::from_private_key(&self)) {
-                        let serial_number: aleo_rust::Field<aleo_rust::Testnet3> =
+                        if let Ok(serial_number) =
                             Record::<CurrentNetwork, Plaintext<CurrentNetwork>>::serial_number(**self, *commitment)
-                                .map_err(|_| "Encryption failed".to_string())?;
-                        let record_data: OldRecordData<aleo_rust::Testnet3> = OldRecordData {
-                            record: plaintext,
-                            transactionid: transition.clone().into_id(),
-                            serial_number,
-                        };
-                        records.push(record_data)
+                        {
+                            let record_data: OldRecordData<aleo_rust::Testnet3> = OldRecordData {
+                                record: plaintext,
+                                transactionid: transition.clone().into_id(),
+                                serial_number,
+                            };
+                            records.push(record_data)
+                        }
                     };
                 }
             }
@@ -174,25 +175,26 @@ impl PrivateKey {
         let mut records = Vec::new();
 
         for record_org in record_org_datas {
-            let record: RecordCiphertext = RecordCiphertext::from_string(&record_org.record_ciphertext).unwrap();
-            let plaintext = record.decrypt(&ViewKey::from_private_key(&self)).unwrap();
-
-            let program_id = record_org.program_id.clone();
-            let record_name = &program_id[..program_id.len() - 5];
-            let serial_number = plaintext.serial_number_string(&self, &program_id, record_name).unwrap();
-
-            let record_data: RecordData<CurrentNetwork> = RecordData {
-                record: plaintext.deref().clone(),
-                serial_number,
-                program_id,
-                height: record_org.height,
-                timestamp: record_org.timestamp,
-                block_hash: record_org.block_hash,
-                transaction_id: record_org.transaction_id,
-                transition_id: record_org.transition_id,
-                function_name: record_org.function_name,
+            if let Ok(record) = RecordCiphertext::from_string(&record_org.record_ciphertext) {
+                if let Ok(plaintext) = record.decrypt(&ViewKey::from_private_key(&self)) {
+                    let program_id = record_org.program_id.clone();
+                    let record_name = &program_id[..program_id.len() - 5];
+                    if let Ok(serial_number) = plaintext.serial_number_string(&self, &program_id, record_name) {
+                        let record_data: RecordData<CurrentNetwork> = RecordData {
+                            record: plaintext.deref().clone(),
+                            serial_number,
+                            program_id,
+                            height: record_org.height,
+                            timestamp: record_org.timestamp,
+                            block_hash: record_org.block_hash,
+                            transaction_id: record_org.transaction_id,
+                            transition_id: record_org.transition_id,
+                            function_name: record_org.function_name,
+                        };
+                        records.push(record_data)
+                    };
+                };
             };
-            records.push(record_data)
         }
         Ok(serde_json::to_string_pretty(&records).unwrap_or_default().replace("\\n", ""))
     }
