@@ -51,6 +51,7 @@ pub struct RecordData<N: Network> {
     transaction_id: String,
     transition_id: String,
     function_name: String,
+    output_index: u8,
 }
 
 #[derive(Deserialize)]
@@ -63,6 +64,7 @@ pub struct RecordOrgData {
     transaction_id: String,
     transition_id: String,
     function_name: String,
+    output_index: u8,
 }
 
 #[wasm_bindgen]
@@ -191,6 +193,7 @@ impl PrivateKey {
                             transaction_id: record_org.transaction_id,
                             transition_id: record_org.transition_id,
                             function_name: record_org.function_name,
+                            output_index: record_org.output_index,
                         };
                         records.push(record_data)
                     };
