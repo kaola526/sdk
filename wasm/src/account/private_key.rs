@@ -177,7 +177,6 @@ impl PrivateKey {
         let record_org_datas: Vec<RecordOrgData> = serde_json::from_str(recordstext).unwrap_or_default();
         let mut records = Vec::new();
         for record_org in record_org_datas {
-            log(&format!("decrypt_records record_ciphertext {}", record_org.record_ciphertext));
             if let Ok(record) = RecordCiphertext::from_string(&record_org.record_ciphertext) {
                 if let Ok(plaintext) = record.decrypt(&ViewKey::from_private_key(&self)) {
                     let program_id = record_org.program_id.clone();
