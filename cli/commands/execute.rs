@@ -26,13 +26,10 @@ use colored::Colorize;
 #[derive(Debug, Parser)]
 pub struct Execute {
     /// The program identifier
-    #[clap(parse(try_from_str))]
     program_id: ProgramID<CurrentNetwork>,
     /// The function name
-    #[clap(parse(try_from_str))]
     function: Identifier<CurrentNetwork>,
     /// The function inputs
-    #[clap(parse(try_from_str))]
     inputs: Vec<Value<CurrentNetwork>>,
     /// Aleo Network peer to broadcast the transaction to
     #[clap(short, long)]
@@ -181,7 +178,7 @@ mod tests {
             "password",
         ]);
 
-        assert_eq!(execute_conflicting_inputs.unwrap_err().kind(), clap::ErrorKind::ArgumentConflict);
+        assert_eq!(execute_conflicting_inputs.unwrap_err().kind(), clap::error::ErrorKind::ArgumentConflict);
 
         // Assert execute fails if a ciphertext is provided without a password
         let ciphertext = Some(Encryptor::encrypt_private_key_with_secret(&recipient_private_key, "password").unwrap());
@@ -197,13 +194,13 @@ mod tests {
             &ciphertext.as_ref().unwrap().to_string(),
         ]);
 
-        assert_eq!(execute_no_password.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
+        assert_eq!(execute_no_password.unwrap_err().kind(), clap::error::ErrorKind::MissingRequiredArgument);
 
         // Assert execute fails if only a password is provided
         let execute_password_only =
             Execute::try_parse_from(["aleo", "hello.aleo", "hello", "1337u32", "42u32", "--password", "password"]);
 
-        assert_eq!(execute_password_only.unwrap_err().kind(), clap::ErrorKind::MissingRequiredArgument);
+        assert_eq!(execute_password_only.unwrap_err().kind(), clap::error::ErrorKind::MissingRequiredArgument);
 
         // Assert execute fails if invalid peer is specified
         let execute_bad_peer = Execute::try_parse_from([

@@ -27,27 +27,27 @@ default-features = false
 
 [workspace.dependencies.snarkvm]
 git = "https://github.com/aleoweb123/snarkVM.git"
-# version = "=0.11.7"
+# branch = "testnet3"
 
 [workspace.dependencies.snarkvm-circuit-network]
 git = "https://github.com/aleoweb123/snarkVM.git"
-# version = "=0.11.7"
+# branch = "testnet3"
 
 [workspace.dependencies.snarkvm-console]
 git = "https://github.com/aleoweb123/snarkVM.git"
-# version = "=0.11.7"
+# branch = "testnet3"
 
 [workspace.dependencies.snarkvm-console-network]
 git = "https://github.com/aleoweb123/snarkVM.git"
-# version = "=0.11.7"
+# branch = "testnet3"
 
 [workspace.dependencies.snarkvm-synthesizer]
 git = "https://github.com/aleoweb123/snarkVM.git"
-# version = "=0.11.7"
+# branch = "testnet3"
 
 [workspace.dependencies.snarkvm-wasm]
 git = "https://github.com/aleoweb123/snarkVM.git"
-# version = "=0.11.7"
+# branch = "testnet3"
 
 [lib]
 path = "cli/lib.rs"
@@ -67,8 +67,8 @@ workspace = true
 version = "1.0"
 
 [workspace.dependencies.clap]
-version = "3.2"
-features = [ "derive" ]
+version = "4.3.2"
+features = [ "derive", "string" ]
 
 [dependencies.clap]
 workspace = true

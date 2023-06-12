@@ -19,23 +19,12 @@ use super::*;
 use crate::{
     execute_program,
     get_process,
-    inclusion_proof,
     log,
-    types::{
-        BlockStoreNative,
-        CurrentAleo,
-        CurrentBlockMemory,
-        IdentifierNative,
-        ProcessNative,
-        ProgramNative,
-        TransactionNative,
-    },
+    types::{CurrentAleo, CurrentBlockMemory, IdentifierNative, ProcessNative, ProgramNative, TransactionNative},
     PrivateKey,
     RecordPlaintext,
     Transaction,
 };
-
-use snarkvm_console::program::Locator;
 
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
@@ -81,9 +70,19 @@ impl ProgramManager {
         let mut new_process;
         let process = get_process!(self, cache, new_process);
 
-        let (locator, (execution, mut trace)) =
+        let (_, mut trace) =
             execute_program!(process, inputs, program, "split", private_key, split_proving_key, split_verifying_key);
-        let execution = inclusion_proof!(process, &locator, execution, trace, url);
+
+        // Prepare the inclusion proofs for the fee & execution
+        trace.prepare_async::<CurrentBlockMemory, _>(&url).await.map_err(|err| err.to_string())?;
+
+        // Prove the execution and fee
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>("credits.aleo/split", &mut StdRng::from_entropy())
+            .map_err(|e| e.to_string())?;
+
+        // Verify the execution and fee
+        process.verify_execution(&execution).map_err(|err| err.to_string())?;
 
         log("Creating execution transaction for split");
         let transaction = TransactionNative::from_execution(execution, None).map_err(|err| err.to_string())?;

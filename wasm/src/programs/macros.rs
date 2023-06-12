@@ -81,39 +81,18 @@ macro_rules! execute_program {
             )
             .map_err(|err| err.to_string())?;
 
-        // Retrieve the main request (without popping it).
-        let request = authorization.peek_next().map_err(|e| e.to_string())?;
-        // Construct the locator.
-        let locator = Locator::new(*request.program_id(), *request.function_name());
-
         log("Executing program");
         let result = $process
             .execute::<CurrentAleo>(authorization)
             .map_err(|err| err.to_string())?;
 
-        (locator, result)
-    }};
-}
-
-#[macro_export]
-macro_rules! inclusion_proof {
-    ($process:expr, $locator:expr, $execution:expr, $trace:expr, $url:expr) => {{
-        let block_store = BlockStoreNative::open(None).unwrap();
-        $trace.prepare(block_store).map_err(|err| err.to_string())?;
-
-        log("Proving execution inclusion proof");
-        let execution = $trace.prove_execution::<CurrentAleo, _>(&$locator.to_string(), &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
-
-        log("Verifying execution");
-        $process.verify_execution(&execution).map_err(|e| e.to_string())?;
-
-        execution
+        result
     }};
 }
 
 #[macro_export]
 macro_rules! fee_inclusion_proof {
-    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $deployment_or_execution_id:expr, $fee_proving_key:expr, $fee_verifying_key:expr) => {{
+    ($process:expr, $private_key:expr, $fee_record:expr, $fee_microcredits:expr, $submission_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $execution_id:expr) => {{
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
         {
@@ -138,37 +117,24 @@ macro_rules! fee_inclusion_proof {
                         .map_err(|e| e.to_string())?;
                 }
             }
-
         };
 
         log("Executing fee program");
         let fee_record_native = RecordPlaintextNative::from_str(&$fee_record.to_string()).unwrap();
-        let rng = &mut StdRng::from_entropy();
-        // Result<(Response<N>, Transition<N>, Trace<N>)>
-        let (_, fee_transition, trace) = $process
+        let (_, _, trace) = $process
             .execute_fee::<CurrentAleo, _>(
                 &$private_key,
                 fee_record_native,
                 $fee_microcredits,
-                $deployment_or_execution_id,
-                rng,
+                $execution_id,
+                &mut StdRng::from_entropy(),
             )
             .map_err(|err| err.to_string())?;
 
-        log("Preparing fee inclusion proof");
-        let fee = trace.prove_fee::<CurrentAleo, _>(rng).map_err(|e| e.to_string())?;
-        // let assignment = inclusion
-        //     .prepare_fee_async::<CurrentBlockMemory, _>(&fee_transition, &$submission_url)
-        //     .await
-        //     .map_err(|err| err.to_string())?;
-
-        // log("Proving fee inclusion proof");
-        // let fee = inclusion
-        //     .prove_fee::<CurrentAleo, _>(fee_transition, &assignment, &mut StdRng::from_entropy())
-        //     .map_err(|err| err.to_string())?;
+        let fee = trace.prove_fee::<CurrentAleo, _>(&mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");
-        $process.verify_fee(&fee, $deployment_or_execution_id).map_err(|e| e.to_string())?;
+        $process.verify_fee(&fee, $execution_id).map_err(|e| e.to_string())?;
 
         fee
     }};
