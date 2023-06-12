@@ -35,6 +35,7 @@ use snarkvm_synthesizer::{
     Process,
     Program,
     Transaction,
+    BlockStore,
 };
 
 pub use snarkvm_wasm::{network::Environment, FromBytes, PrimeField, ToBytes};
@@ -67,3 +68,4 @@ pub type ResponseNative = Response<CurrentNetwork>;
 pub type TransactionLeafNative = TransactionLeaf<CurrentNetwork>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
 pub type VerifyingKeyNative = VerifyingKey<CurrentNetwork>;
+pub type BlockStoreNative = BlockStore<CurrentNetwork, CurrentBlockMemory>;

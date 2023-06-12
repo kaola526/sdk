@@ -31,6 +31,7 @@ use crate::{
         RecordPlaintextNative,
         TransactionLeafNative,
         TransactionNative,
+        BlockStoreNative,
     },
     utils::to_bits,
     PrivateKey,
@@ -125,16 +126,19 @@ impl ProgramManager {
             .verify_deployment::<CurrentAleo, _>(&deployment, &mut StdRng::from_entropy())
             .map_err(|err| err.to_string())?;
 
+        // Compute the deployment ID.
+        let deployment_id = deployment.to_deployment_id().map_err(|err| err.to_string())?;
         let fee = fee_inclusion_proof!(
             process,
             private_key,
             fee_record,
             fee_microcredits,
             url,
+            deployment_id,
             fee_proving_key,
             fee_verifying_key
         );
-        process.verify_fee(&fee).map_err(|e| e.to_string())?;
+        process.verify_fee(&fee, deployment_id).map_err(|e| e.to_string())?;
 
         log("Create the deployment transaction");
         TransactionNative::check_deployment_size(&deployment).map_err(|err| err.to_string())?;

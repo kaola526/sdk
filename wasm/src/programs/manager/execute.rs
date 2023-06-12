@@ -30,12 +30,15 @@ use crate::{
         ProgramNative,
         RecordPlaintextNative,
         TransactionNative,
+        BlockStoreNative,
     },
     ExecutionResponse,
     PrivateKey,
     RecordPlaintext,
     Transaction,
 };
+
+use snarkvm_console::program::Locator;
 
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
@@ -78,11 +81,12 @@ impl ProgramManager {
         let mut new_process;
         let process: &mut ProcessNative = get_process!(self, cache, new_process);
 
-        let (response, execution, _, _) =
+        // Result<(Response<N>, Trace<N>)>
+        let (_locator, (response, execution)) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
 
-        log(&format!("Verifying execution for local function: {function}"));
-        process.verify_execution::<false>(&execution).map_err(|e| e.to_string())?;
+        // log(&format!("Verifying execution for local function: {function}"));
+        // process.verify_execution::<false>(&execution).map_err(|e| e.to_string())?;
 
         log("Creating execution response");
         let outputs = js_sys::Array::new_with_length(response.outputs().len() as u32);
@@ -133,15 +137,18 @@ impl ProgramManager {
         let mut new_process;
         let process = get_process!(self, cache, new_process);
 
-        let (_, execution, inclusion, _) =
+        let (locator, (execution, mut trace)) =
             execute_program!(process, inputs, program, function, private_key, proving_key, verifying_key);
-        let execution = inclusion_proof!(process, inclusion, execution, url);
+
+        let execution = inclusion_proof!(process, &locator, execution, trace, url);
+        let execution_id = execution.to_execution_id().map_err(|err| err.to_string())?;
         let fee = fee_inclusion_proof!(
             process,
             private_key,
             fee_record,
             fee_microcredits,
             url,
+            execution_id,
             fee_proving_key,
             fee_verifying_key
         );

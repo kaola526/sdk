@@ -17,7 +17,7 @@
 use crate::types::{CurrentNetwork, IdentifierNative, ProgramNative};
 
 use js_sys::{Array, Object, Reflect};
-use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
+use snarkvm_console::program::{EntryType, PlaintextType, ValueType, Locator};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 

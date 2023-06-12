@@ -30,11 +30,14 @@ use crate::{
         ProgramNative,
         RecordPlaintextNative,
         TransactionNative,
+        BlockStoreNative,
     },
     PrivateKey,
     RecordPlaintext,
     Transaction,
 };
+
+use snarkvm_console::program::Locator;
 
 use js_sys::Array;
 use rand::{rngs::StdRng, SeedableRng};
@@ -93,7 +96,7 @@ impl ProgramManager {
         let mut new_process;
         let process = get_process!(self, cache, new_process);
 
-        let (_, execution, inclusion, _) = execute_program!(
+        let (locator, (execution, mut trace)) = execute_program!(
             process,
             inputs,
             program,
@@ -102,13 +105,15 @@ impl ProgramManager {
             transfer_proving_key,
             transfer_verifying_key
         );
-        let execution = inclusion_proof!(process, inclusion, execution, url);
+        let execution = inclusion_proof!(process, &locator, execution, trace, url);
+        let execution_id = execution.to_execution_id().map_err(|err| err.to_string())?;
         let fee = fee_inclusion_proof!(
             process,
             private_key,
             fee_record,
             fee_microcredits,
             url,
+            execution_id,
             fee_proving_key,
             fee_verifying_key
         );
