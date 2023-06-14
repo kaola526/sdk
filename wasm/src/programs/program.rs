@@ -191,7 +191,7 @@ impl Program {
         let struct_mappings = Array::new_with_length(self.0.mappings().len() as u32);
         
         for (index, mapping) in self.0.mappings().values().enumerate() {
-            struct_mappings.set(index as u32, mapping.name().to_string().into());
+            struct_mappings.set(index as u32, mapping.to_string().into());
         }
 
         Ok(struct_mappings)
