@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::{CurrentNetwork, IdentifierNative, ProgramNative};
+use crate::types::{CurrentNetwork, IdentifierNative, ProgramIDNative, ProgramNative};
 
 use js_sys::{Array, Object, Reflect};
+use snarkvm_console_network::string;
 use snarkvm_wasm::program::{EntryType, PlaintextType, ValueType};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
@@ -183,6 +184,22 @@ impl Program {
         }
 
         Ok(struct_members)
+    }
+
+    #[wasm_bindgen(js_name = "getmappings")]
+    pub fn get_mappings(&self, mapping_name: String) -> Result<Array, String> {
+        let struct_mappings = Array::new_with_length(self.0.mappings().len() as u32);
+        
+        for (index, mapping) in self.0.mappings().values().enumerate() {
+            struct_mappings.set(index as u32, mapping.name().to_string().into());
+        }
+
+        Ok(struct_mappings)
+        // let program_id = ProgramIDNative::<CurrentNetwork>::from_str(program_id).map_err(|e| e.to_string())?;
+        // let mapping_name = IdentifierNative::<N>::from_str(&mapping_name).map_err(|e| e.to_string())?;
+        // Ok(<CurrentNetwork>::hash_bhp1024(&(program_id, mapping_name).to_bits_le())
+        //     .map(|hash| hash.to_string())
+        //     .map_err(|_| exceptions::PyValueError::new_err("invalid mapping id")))
     }
 }
 
