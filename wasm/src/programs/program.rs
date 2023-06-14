@@ -216,6 +216,12 @@ impl Program {
             .map_err(|e| e.to_string())?)
     }
 
+    #[wasm_bindgen(js_name = "getMappingKeyName")]
+    pub fn get_mapping_key_name(&self, mapping_id: String, key_id: String) -> Result<String, String> {
+        let key_id = FieldNative::from_str(&key_id).map_err(|e| e.to_string())?;
+        Ok(key_id.to_string())
+    }
+
     #[wasm_bindgen(js_name = "getMappingValueId")]
     pub fn get_mapping_value_id(&self, key_id: String, value: String) -> Result<String, String> {
         let key_id = FieldNative::from_str(&key_id).map_err(|e| e.to_string())?;
@@ -225,6 +231,7 @@ impl Program {
             .map(|hash| hash.to_string())
             .map_err(|e| e.to_string())?)
     }
+    
 }
 
 impl Deref for Program {
