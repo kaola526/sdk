@@ -26,6 +26,8 @@ pub use aleo_rust::{
     Signature,
     Testnet3,
     ViewKey,
+    Field,
+    Value,
 };
 use snarkvm_circuit_network::AleoV0;
 use snarkvm_synthesizer::{helpers::memory::BlockMemory, Fee, Process, Program, Transaction};
@@ -65,3 +67,5 @@ pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;
 pub type ResponseNative = Response<CurrentNetwork>;
 pub type TransactionLeafNative = TransactionLeaf<CurrentNetwork>;
 pub type TransactionNative = Transaction<CurrentNetwork>;
+pub type FieldNative = Field<CurrentNetwork>;
+pub type ValueNative = Value<CurrentNetwork>;

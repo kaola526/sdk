@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::{CurrentNetwork, IdentifierNative, ProgramIDNative, ProgramNative};
+use crate::types::{CurrentNetwork, IdentifierNative, PlaintextNative, ProgramNative, FieldNative, ValueNative};
 
 use js_sys::{Array, Object, Reflect};
-use snarkvm_console_network::string;
-use snarkvm_wasm::program::{EntryType, PlaintextType, ValueType};
+use snarkvm_console_network::{string, Network};
+use snarkvm_wasm::program::{EntryType, PlaintextType, ToBits, ValueType};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -187,19 +187,43 @@ impl Program {
     }
 
     #[wasm_bindgen(js_name = "getmappings")]
-    pub fn get_mappings(&self, mapping_name: String) -> Result<Array, String> {
+    pub fn get_mappings(&self) -> Result<Array, String> {
         let struct_mappings = Array::new_with_length(self.0.mappings().len() as u32);
-        
+
         for (index, mapping) in self.0.mappings().values().enumerate() {
             struct_mappings.set(index as u32, mapping.to_string().into());
         }
 
         Ok(struct_mappings)
-        // let program_id = ProgramIDNative::<CurrentNetwork>::from_str(program_id).map_err(|e| e.to_string())?;
-        // let mapping_name = IdentifierNative::<N>::from_str(&mapping_name).map_err(|e| e.to_string())?;
-        // Ok(<CurrentNetwork>::hash_bhp1024(&(program_id, mapping_name).to_bits_le())
-        //     .map(|hash| hash.to_string())
-        //     .map_err(|_| exceptions::PyValueError::new_err("invalid mapping id")))
+    }
+
+    #[wasm_bindgen(js_name = "getMappingId")]
+    pub fn get_mapping_id(&self, mapping_name: String) -> Result<String, String> {
+        let program_id = self.0.id();
+        let mapping_name = IdentifierNative::from_str(&mapping_name).map_err(|e| e.to_string())?;
+        Ok(<CurrentNetwork as Network>::hash_bhp1024(&(program_id, mapping_name).to_bits_le())
+            .map(|hash| hash.to_string())
+            .map_err(|e| e.to_string())?)
+    }
+
+    #[wasm_bindgen(js_name = "getMappingKeyId")]
+    pub fn get_mapping_key_id(&self, mapping_id: String, key: String) -> Result<String, String> {
+        let mapping_id = FieldNative::from_str(&mapping_id).map_err(|e| e.to_string())?;
+        let key = PlaintextNative::from_str(&key).map_err(|e| e.to_string())?;
+        let key_hash = <CurrentNetwork as Network>::hash_bhp1024(&key.to_bits_le()).map_err(|e| e.to_string())?;
+        Ok(<CurrentNetwork as Network>::hash_bhp1024(&(mapping_id, key_hash).to_bits_le())
+            .map(|hash| hash.to_string())
+            .map_err(|e| e.to_string())?)
+    }
+
+    #[wasm_bindgen(js_name = "getMappingValueId")]
+    pub fn get_mapping_value_id(&self, key_id: String, value: String) -> Result<String, String> {
+        let key_id = FieldNative::from_str(&key_id).map_err(|e| e.to_string())?;
+        let value = ValueNative::from_str(&value).map_err(|e| e.to_string())?;
+        let value_hash = <CurrentNetwork as Network>::hash_bhp1024(&value.to_bits_le()).map_err(|e| e.to_string())?;
+        Ok(<CurrentNetwork as Network>::hash_bhp1024(&(key_id, value_hash).to_bits_le())
+            .map(|hash| hash.to_string())
+            .map_err(|e| e.to_string())?)
     }
 }
 
